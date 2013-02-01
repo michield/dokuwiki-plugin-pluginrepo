@@ -140,22 +140,22 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
         $R->doc .= $this->getLang('t_filterbytype');
         $R->doc .= '</h3>'.NL;
 
-        $R->doc .= '<ul class="types">'.NL;
-        $R->doc .= '<li><div class="li">';
-        $R->doc .= sprintf($this->getLang('t_typesyntax'),$this->hlp->listtype(1,$ID));
-        $R->doc .= '</div></li>'.NL;
-        $R->doc .= '<li><div class="li">';
-        $R->doc .= sprintf($this->getLang('t_typeaction'),$this->hlp->listtype(4,$ID));
-        $R->doc .= '</div></li>'.NL;
-        $R->doc .= '<li><div class="li">';
-        $R->doc .= sprintf($this->getLang('t_typeadmin'),$this->hlp->listtype(2,$ID));
-        $R->doc .= '</div></li>'.NL;
-        $R->doc .= '<li><div class="li">';
-        $R->doc .= sprintf($this->getLang('t_typehelper'),$this->hlp->listtype(16,$ID));
-        $R->doc .= '</div></li>'.NL;
-        $R->doc .= '<li><div class="li">';
-        $R->doc .= sprintf($this->getLang('t_typerender'),$this->hlp->listtype(8,$ID));
-        $R->doc .= '</div></li>'.NL;
+        //$R->doc .= '<ul class="types">'.NL;
+        //$R->doc .= '<li><div class="li">';
+        //$R->doc .= sprintf($this->getLang('t_typesyntax'),$this->hlp->listtype(1,$ID));
+        //$R->doc .= '</div></li>'.NL;
+        //$R->doc .= '<li><div class="li">';
+        //$R->doc .= sprintf($this->getLang('t_typeaction'),$this->hlp->listtype(4,$ID));
+        //$R->doc .= '</div></li>'.NL;
+        //$R->doc .= '<li><div class="li">';
+        //$R->doc .= sprintf($this->getLang('t_typeadmin'),$this->hlp->listtype(2,$ID));
+        //$R->doc .= '</div></li>'.NL;
+        //$R->doc .= '<li><div class="li">';
+        //$R->doc .= sprintf($this->getLang('t_typehelper'),$this->hlp->listtype(16,$ID));
+        //$R->doc .= '</div></li>'.NL;
+        //$R->doc .= '<li><div class="li">';
+        //$R->doc .= sprintf($this->getLang('t_typerender'),$this->hlp->listtype(8,$ID));
+        //$R->doc .= '</div></li>'.NL;
 
         if ($data['includetemplates']) {
             $R->doc .= '<li><div class="li">';
