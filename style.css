@@ -6,7 +6,7 @@
     min-width: 230px;
     border: 1px solid __background_alt__;
     border-radius: 2px;
-    margin: 0 1.5em 1.5em 0;
+    margin: 0 0 1.5em;
     text-align: left;
 }
 
@@ -53,6 +53,13 @@
     margin-bottom: .2em;
 }
 
+/* obsolete extension entry */
+.dokuwiki div.pluginrepo_entry.obsoleted {
+    color: rgba(1,1,1,0.4);
+}
+.dokuwiki div.pluginrepo_entry.obsoleted a{
+    opacity: 0.5;
+}
 
 /* general styles within the entry */
 .dokuwiki div.pluginrepo_entry p {
@@ -111,9 +118,9 @@
 .dokuwiki div.pluginrepo_entry div.compatibility ul:hover {
     position: absolute;
     top: 0;
-    left: 0;
+    right: 0;
     box-shadow: 0 5px 5px #999;
-    width: 250px;
+    width: 300px;
     overflow: visible;
     border: 2px solid __background__;
     margin: -2px -2px 0;
@@ -139,6 +146,9 @@
 }
 .dokuwiki div.pluginrepo_entry div.compatibility ul li.yes strong {
     background-image: url(../../images/success.png);
+}
+.dokuwiki div.pluginrepo_entry div.compatibility ul li.no strong {
+    background-image: url(images/no.png);
 }
 .dokuwiki div.pluginrepo_entry div.compatibility ul li.probably strong {
     background-image: url(images/exclamation.png);
@@ -237,13 +247,14 @@
 }
 
 /* search form */
-.dokuwiki div.pluginrepo_table form.search {
+.dokuwiki div.pluginrepo_table form.plugin-search {
     position: relative;
     margin-bottom: 1.4em;
     display: block;
 }
-.dokuwiki div.pluginrepo_table form.search input.edit {
+.dokuwiki div.pluginrepo_table form.plugin-search input.edit {
     margin-bottom: .2em;
+    max-width: 100%;
 }
 /* quick search result AJAX popup */
 #qsearch2__out {

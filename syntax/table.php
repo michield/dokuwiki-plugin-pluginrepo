@@ -5,22 +5,23 @@
  * @author     Andreas Gohr <andi@splitbrain.org>
  * @author     Hakan Sandell <sandell.hakan@gmail.com>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
 
+/**
+ * Class syntax_plugin_pluginrepo_table
+ */
 class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
     /**
      * will hold the repository helper plugin
-     */
+     * @var $hlp helper_plugin_pluginrepo_repository */
     var $hlp = null;
 
     /**
      * Constructor. Load helper plugin
      */
-    function syntax_plugin_pluginrepo_table(){
-        $this->hlp =& plugin_load('helper', 'pluginrepo');
-        if(!$this->hlp) msg('Loading the pluginrepo helper failed. Make sure the pluginrepo plugin is installed.',-1);
+    function __construct(){
+        $this->hlp = plugin_load('helper', 'pluginrepo_repository');
+        if(!$this->hlp) msg('Loading the pluginrepo repository helper failed. Make sure the pluginrepo plugin is installed.',-1);
     }
 
     /**
@@ -46,28 +47,41 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
     /**
      * Connect pattern to lexer
+     *
+     * @param string $mode
      */
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern('~~pluginrepo~~',$mode,'plugin_pluginrepo_table');
         $this->Lexer->addSpecialPattern('----+ *pluginrepo *-+\n.*?\n----+',$mode,'plugin_pluginrepo_table');
     }
 
-
     /**
      * Handle the match - parse the data
      *
      * This parsing is shared between the multiple different output/control
      * syntaxes
+     *
+     * @param   string       $match   The text matched by the patterns
+     * @param   int          $state   The lexer state for the match
+     * @param   int          $pos     The character position of the matched text
+     * @param   Doku_Handler $handler The Doku_Handler object
+     * @return  bool|array Return an array with all data you want to use in render, false don't add an instruction
      */
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, Doku_Handler $handler){
         return $this->hlp->parseData($match);
     }
 
     /**
      * Create output
+     *
+     * @param string          $format   output format being rendered
+     * @param Doku_Renderer   $renderer the current renderer object
+     * @param array           $data     data created by handle()
+     * @return  boolean                 rendered correctly? (however, returned value is not used at the moment)
      */
-    function render($format, &$renderer, $data) {
+    function render($format, Doku_Renderer $renderer, $data) {
         if($format == 'xhtml') {
+            /** @var Doku_Renderer_xhtml $renderer */
             return $this->_showData($renderer,$data);
         }
         return false;
@@ -75,8 +89,12 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
     /**
      * Output table of plugins with filter and navigation
+     *
+     * @param Doku_Renderer_xhtml $R
+     * @param array               $data
+     * @return bool rendered correctly?
      */
-    function _showData(&$R, $data){
+    function _showData($R, $data){
         global $ID;
 
         $R->info['cache'] = false;
@@ -104,12 +122,16 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
         // main table
         $this->_showPluginTable($R, $data);
+        return true;
     }
 
     /**
      * Output repo table overview/intro and search form
+     *
+     * @param Doku_Renderer_xhtml $R
+     * @param array $data
      */
-    function _showMainSearch(&$R, $data){
+    function _showMainSearch($R, $data){
         global $ID;
         if (substr($ID,-1,1) == 's') {
             $searchNS = substr($ID,0,-1);
@@ -121,7 +143,7 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
         $R->doc .= $this->getLang('t_searchintro_'.noNS($ID));
         $R->doc .= '</p>'.NL;
 
-        $R->doc .= '<form action="'.wl().'" accept-charset="utf-8" class="search" id="dw__search2" method="get"><div class="no">'.NL;
+        $R->doc .= '<form action="'.wl().'" accept-charset="utf-8" class="plugin-search" id="dw__search2" method="get"><div class="no">'.NL;
         $R->doc .= '  <input type="hidden" name="do" value="search" />'.NL;
         $R->doc .= '  <input type="hidden" id="dw__ns" name="ns" value="'.$searchNS.'" />'.NL;
         $R->doc .= '  <input type="text" id="qsearch2__in" accesskey="f" name="id" class="edit" />'.NL;
@@ -132,30 +154,42 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
     /**
      * Output plugin TYPE filter selection
+     *
+     * @param Doku_Renderer_xhtml $R
+     * @param array $data
      */
-    function _showPluginTypeFilter(&$R, $data){
+    function _showPluginTypeFilter($R, $data){
         global $ID;
 
         $R->doc .= '<h3>';
         $R->doc .= $this->getLang('t_filterbytype');
         $R->doc .= '</h3>'.NL;
 
-        //$R->doc .= '<ul class="types">'.NL;
-        //$R->doc .= '<li><div class="li">';
-        //$R->doc .= sprintf($this->getLang('t_typesyntax'),$this->hlp->listtype(1,$ID));
-        //$R->doc .= '</div></li>'.NL;
-        //$R->doc .= '<li><div class="li">';
-        //$R->doc .= sprintf($this->getLang('t_typeaction'),$this->hlp->listtype(4,$ID));
-        //$R->doc .= '</div></li>'.NL;
-        //$R->doc .= '<li><div class="li">';
-        //$R->doc .= sprintf($this->getLang('t_typeadmin'),$this->hlp->listtype(2,$ID));
-        //$R->doc .= '</div></li>'.NL;
-        //$R->doc .= '<li><div class="li">';
-        //$R->doc .= sprintf($this->getLang('t_typehelper'),$this->hlp->listtype(16,$ID));
-        //$R->doc .= '</div></li>'.NL;
-        //$R->doc .= '<li><div class="li">';
-        //$R->doc .= sprintf($this->getLang('t_typerender'),$this->hlp->listtype(8,$ID));
-        //$R->doc .= '</div></li>'.NL;
+        $R->doc .= '<ul class="types">'.NL;
+        $R->doc .= '<li><div class="li">';
+        $R->doc .= sprintf($this->getLang('t_typesyntax'),$this->hlp->listtype(1,$ID));
+        $R->doc .= '</div></li>'.NL;
+        $R->doc .= '<li><div class="li">';
+        $R->doc .= sprintf($this->getLang('t_typeaction'),$this->hlp->listtype(4,$ID));
+        $R->doc .= '</div></li>'.NL;
+        $R->doc .= '<li><div class="li">';
+        $R->doc .= sprintf($this->getLang('t_typeadmin'),$this->hlp->listtype(2,$ID));
+        $R->doc .= '</div></li>'.NL;
+        $R->doc .= '<li><div class="li">';
+        $R->doc .= sprintf($this->getLang('t_typehelper'),$this->hlp->listtype(16,$ID));
+        $R->doc .= '</div></li>'.NL;
+        $R->doc .= '<li><div class="li">';
+        $R->doc .= sprintf($this->getLang('t_typerender'),$this->hlp->listtype(8,$ID));
+        $R->doc .= '</div></li>'.NL;
+        $R->doc .= '<li><div class="li">';
+        $R->doc .= sprintf($this->getLang('t_typeremote'),$this->hlp->listtype(64,$ID));
+        $R->doc .= '</div></li>'.NL;
+        $R->doc .= '<li><div class="li">';
+        $R->doc .= sprintf($this->getLang('t_typeauth'),$this->hlp->listtype(128,$ID));
+        $R->doc .= '</div></li>'.NL;
+        $R->doc .= '<li><div class="li">';
+        $R->doc .= sprintf($this->getLang('t_typecli'),$this->hlp->listtype(256,$ID));
+        $R->doc .= '</div></li>'.NL;
 
         if ($data['includetemplates']) {
             $R->doc .= '<li><div class="li">';
@@ -167,8 +201,11 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
     /**
      * Output plugin tag filter selection (cloud)
+     *
+     * @param Doku_Renderer_xhtml $R
+     * @param array $data
      */
-    function _tagcloud(&$R, $data){
+    function _tagcloud($R, $data){
         global $ID;
 
         $R->doc .= '<h3>';
@@ -188,17 +225,19 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
         foreach($tagData as $tag) {
             if ($tag['tag'] == $this->hlp->obsoleteTag) continue; // obsolete plugins are not included in the table
             $tags[$tag['tag']] = $tag['cnt'];
-            if(!$max) $max = $tag['cnt'];
+            if(!$max) {
+                $max = $tag['cnt'];
+            }
             $min = $tag['cnt'];
         }
-        $this->_cloud_weight($tags,$min,$max,5);
+        $this->_cloud_weight($tags, $min, $max,5);
 
         ksort($tags);
         if (count($tags) > 0) {
             $R->doc .= '<div class="cloud">'.NL;
             foreach($tags as $tag => $size){
                 $R->doc .= '<a href="'.wl($ID,array('plugintag'=>$tag)).'#extension__table" '.
-                           'class="wikilink1 cl'.$size.'"'.
+                           'class="wikilink1 cl'.$size.'" '.
                            'title="List all plugins with this tag">'.hsc($tag).'</a> ';
             }
             $R->doc .= '</div>'.NL;
@@ -207,6 +246,11 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
     /**
      * Assign weight group to each tag in supplied array, use $levels groups
+     *
+     * @param array $tags
+     * @param int   $min
+     * @param int   $max
+     * @param int   $levels
      */
     function _cloud_weight(&$tags,$min,$max,$levels){
         // calculate tresholds
@@ -229,8 +273,12 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
     /**
      * Output plugin table and "jump to A B C.." navigation
+     *
+     * @param Doku_Renderer_xhtml $R
+     * @param array               $data
+     * @return bool
      */
-    function _showPluginTable(&$R, $data){
+    function _showPluginTable($R, $data){
         global $ID;
 
         $plugins = $this->hlp->getPlugins(array_merge($_REQUEST,$data));
@@ -270,12 +318,7 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
         }
 
         // the main table
-        if ($data['tablelayout'] != 'old') {
-            $this->_newTable($plugins,$linkopt,$data,$R);
-        } else {
-            // @todo: drop the classic look completely?
-            $this->_classicTable($plugins,$linkopt,$data,$R);
-        }
+        $this->_newTable($plugins,$linkopt,$data,$R);
 
         $R->doc .= '</div>'.NL;
         $R->section_close();
@@ -284,6 +327,10 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
 
     /**
      * Output new table with more dense layout
+     * @param array $plugins
+     * @param $linkopt
+     * @param array $data
+     * @param Doku_Renderer_xhtml $R
      */
     function _newTable($plugins,$linkopt,$data,$R) {
         global $ID;
@@ -319,12 +366,6 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
         $compatgroup = 'xx9999-99-99';
         $tmpChar = '';
         foreach($plugins as $row) {
-            $id = (getNS($row['plugin']) ? $row['plugin'] : ':plugin:'.$row['plugin']);
-            if(!page_exists(cleanID($id))){
-                $this->hlp->deletePlugin($row['plugin']);
-                continue;
-            }
-
             if (!$data['compatible'] && !$sort && $row['bestcompatible'] !== $compatgroup) {
                 $R->doc .= '</table>'.NL;
                 $R->doc .= '<table class="inline">'.NL;
@@ -354,12 +395,13 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
             $R->doc .= '<div class="mainInfo">'.NL;
             // extension name and link
             $R->doc .= '<strong>';
-            $R->doc .= $this->hlp->pluginlink($R, $row['plugin'], $row['name'].($row['type']==32?' template':' plugin'));
+            $R->doc .= $this->hlp->pluginlink($R, $row['plugin'], $row['name']);
             $R->doc .= '</strong>'.NL;
             // download
-            if($row['downloadurl'] && !$row['securityissue'] && !$row['securitywarning']){
+            $isObsolete = in_array($this->hlp->obsoleteTag, $this->hlp->parsetags($row['tags']));
+            if(!$row['securityissue'] && !$row['securitywarning'] && !$isObsolete && $row['downloadurl']){
                 $R->doc .= ' <em>';
-                $R->doc .= $R->externallink($row['downloadurl'], $this->getLang('t_download'), null, true);
+                $R->doc .= $R->externallink($row['downloadurl'], $this->getLang('t_download'), true);
                 $R->doc .= '</em>'.NL;
             }
             // description
@@ -387,8 +429,8 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
                 $R->doc .= '<td class="screenshot">';
                 $val = $row['screenshot'];
                 if ($val) {
-                    $title = 'screenshot: '.basename(str_replace(':','/',$val));
-                    $R->doc .= '<a href="'.ml($val).'" class="media" rel="lightbox">';
+                    $title = sprintf($this->getLang('screenshot_title'), noNS($row['plugin']));
+                    $R->doc .= '<a href="'.ml($val).'" class="media" title="' . $title . '" rel="lightbox">';
                     $R->doc .= '<img src="'.ml($val,"w=80").'" alt="" width="80" /></a>';
                 }
                 $R->doc .= '</td>'.NL;
@@ -422,77 +464,5 @@ class syntax_plugin_pluginrepo_table extends DokuWiki_Syntax_Plugin {
         }
         $R->doc .= '</table>'.NL;
     }
-
-    /**
-     * Output classic repository table with only one database field/cell
-     */
-    function _classicTable($plugins,$linkopt,$data,$R) {
-        global $ID;
-
-        $popmax = $this->hlp->getMaxPopularity($ID);
-
-        $R->doc .= '<table class="inline">';
-        $R->doc .= '<tr><th><a href="'.wl($ID,$linkopt.'pluginsort=p#extension__table').'" title="'.$this->getLang('t_sortname').'">'.$this->getLang('t_name').'</a></th>';
-
-        $R->doc .= '<th>'.$this->getLang('t_description').'</th>';
-        $R->doc .= '<th><a href="'.wl($ID,$linkopt.'pluginsort=a#extension__table').'" title="'.$this->getLang('t_sortauthor').'">'.$this->getLang('t_author').'</a></th>';
-        $R->doc .= '<th><a href="'.wl($ID,$linkopt.'pluginsort=t#extension__table').'" title="'.$this->getLang('t_sorttype').  '">'.$this->getLang('t_type').'</a></th>';
-        if ($data['screenshot'] == 'yes') {
-            $R->doc .= '<th>'.$this->getLang('t_screenshot').'</th>';
-        }
-        $R->doc .= '<th><a href="'.wl($ID,$linkopt.'pluginsort=^d#extension__table').'" title="'.$this->getLang('t_sortdate'). '">'.$this->getLang('t_date').'</a></th>';
-        $R->doc .= '<th><a href="'.wl($ID,$linkopt.'pluginsort=^c#extension__table').'" title="'.$this->getLang('t_sortpopularity').'">'.$this->getLang('t_popularity').'</a></th>';
-        $R->doc .= '</tr>';
-
-        foreach($plugins as $row) {
-            $id = (getNS($row['plugin']) ? $row['plugin'] : ':plugin:'.$row['plugin']);
-            if(!page_exists(cleanID($id))){
-                $this->hlp->deletePlugin($row['plugin']);
-                continue;
-            }
-
-            $R->doc .= '<tr>';
-            $R->doc .= '<td>';
-            $R->doc .= $this->hlp->pluginlink($R, $row['plugin']);
-            $R->doc .= '</td>';
-            $R->doc .= '<td>';
-            $R->doc .= '<strong>'.hsc($row['name']).'</strong><br />';
-            $R->doc .= hsc($row['description']);
-            $R->doc .= '</td>';
-
-            $R->doc .= '<td>';
-            $R->emaillink($row['email'],$row['author']);
-            $R->doc .= '</td>';
-
-            $R->doc .= '<td>';
-            $R->doc .= $this->hlp->listtype($row['type'],$ID);
-            $R->doc .= '</td>';
-
-            if ($data['screenshot'] == 'yes') {
-                $R->doc .= '<td>';
-                $val = $row['screenshot'];
-                if ($val) {
-                    $title = 'screenshot: '.basename(str_replace(':','/',$val));
-                    $R->doc .= '<a href="'.ml($val).'" class="media" rel="lightbox">';
-                    $R->doc .= '<img src="'.ml($val,"w=80").'" alt="'.hsc($title).'" width="80"/></a>';
-                }
-                $R->doc .= '</td>';
-            }
-
-            if(in_array($row['plugin'], $this->hlp->bundled)){
-                $R->doc .= '<td></td><td><i>'.$this->getLang('t_bundled').'</i></td>';
-            }else{
-                $R->doc .= '<td>';
-                $R->doc .= hsc($row['lastupdate']);
-                $R->doc .= '</td><td>';
-                $R->doc .= '<div class="prog-border" title="'.$row['popularity'].'/'.$popmax.'"><div class="prog-bar" style="width: '.sprintf(100*$row['popularity']/$popmax).'%;"></div></div>';
-                $R->doc .= '</td>';
-            }
-
-            $R->doc .= '</tr>';
-        }
-        $R->doc .= '</table>';
-    }
-
 }
 

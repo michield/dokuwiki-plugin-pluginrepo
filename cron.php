@@ -8,7 +8,8 @@ if(!defined('DOKU_INC')) define('DOKU_INC',dirname(__FILE__).'/../../../');
 define('NOSESSION',true);
 require_once(DOKU_INC.'inc/init.php');
 
-$hlp = plugin_load('helper','pluginrepo');
+/** @var helper_plugin_pluginrepo_repository $hlp */
+$hlp = plugin_load('helper','pluginrepo_repository');
 $db  = $hlp->_getPluginsDB();
 if (!$db) die('failed to connect to DB');
 
@@ -43,3 +44,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
     $updt->execute(array(':pop'=>$row['cnt'], ':name'=> 'template:'.$row['template']));
 }
 
+// create info on bad extension versions
+/** @var helper_plugin_pluginrepo_version $version */
+$version = plugin_load('helper', 'pluginrepo_version');
+$version->execute();

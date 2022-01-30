@@ -2,21 +2,22 @@
 /**
  * DokuWiki plugin/template/popularity data repository API
  *
+ * The API repository.php is (only?) used for the Translation Tool, which just need all extensions
+ * Filtering does not reduce collection significant for this application, so is skipped since October 2020.
+ *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
- * @author     Håkan Sandell <hakan.sandell@home.se>
+ * @author     HÃ¥kan Sandell <hakan.sandell@home.se>
  */
 
+use dokuwiki\Cache\Cache;
 
 if(!defined('DOKU_INC')) define('DOKU_INC',dirname(__FILE__).'/../../../');
 require_once(DOKU_INC.'inc/init.php');
 
-require_once(DOKU_PLUGIN.'pluginrepo/helper.php');
+require_once(DOKU_PLUGIN . 'pluginrepo/helper/repository.php');
 
 //close session
 session_write_close();
-
-// get params
-$opt = parseOptions();
 
 // check cache
 
@@ -24,19 +25,17 @@ header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 header('Pragma: public');
 header('Content-Type: application/xml; charset=utf-8');
 header('X-Robots-Tag: noindex');
-    http_conditionalRequest(time());
+http_conditionalRequest(time());
 
-ksort($opt);
+
 $string = "pluginrepo";
-foreach($opt as $key => $value) {
-    $string .= "|$key:$value|";
-}
-$cache = new cache($string, '.xml');
+
+$cache = new Cache($string, '.xml');
 if($cache->useCache(array('age'=>7200))) {
     $feed = $cache->retrieveCache();
 } else {
     // create new feed
-    $feed = getRepository($opt);
+    $feed = getRepository();
 
     // save cachefile
     $cache->storeCache($feed);
@@ -47,20 +46,14 @@ print $feed;
 // ---------------------------------------------------------------- //
 
 /**
- * Get URL parameters and config options and return a initialized option array
- */
-function parseOptions() {
-    // no config options right now
-    return  $_REQUEST;
-}
-
-/**
  * Return XML string with repository data, plugin relations (tags, similar, depends)
  * are only returned if $opt['plugins'] is used to return named plugins
+ *
+ * @return string
  */
-function getRepository($opt) {
-    $hlp = new helper_plugin_pluginrepo();
-    $plugins = $hlp->getPlugins($opt);
+function getRepository() {
+    $hlp = new helper_plugin_pluginrepo_repository();
+    $plugins = $hlp->getAllExtensions();
 
     $feed = '<?xml version="1.0" encoding="utf-8"?>';
     $feed .= '<repository>';
@@ -111,11 +104,21 @@ function getRepository($opt) {
             $feed .= '<tag>'.hsc($link).'</tag>';
         }
         $feed .= '</tags>';
-        if($plugin['type'] == 32) {
-            $feed.= '<screenshoturl>'.hsc($plugin['screenshot']).'</screenshoturl>';
+
+        if(empty($plugin['screenshot'])){
+            $feed .= '<screenshoturl></screenshoturl>';
+            $feed .= '<thumbnailurl></thumbnailurl>';
+        }else{
+            if(!preg_match('/^https?:\/\//', $plugin['screenshot'])){
+                $feed .= '<screenshoturl>'.hsc(ml($plugin['screenshot'],array(),true,'&',true)).'</screenshoturl>';
+            }else{
+                $feed .= '<screenshoturl>'.hsc($plugin['screenshot']).'</screenshoturl>';
+            }
+            $feed .= '<thumbnailurl>'.hsc(ml($plugin['screenshot'], array('cache'=>'cache', 'w'=>120, 'h'=>70),true,'&',true)).'</thumbnailurl>';
         }
 
         $feed .= '<downloadurl>'.hsc($plugin['downloadurl']).'</downloadurl>';
+        $feed .= '<sourcerepo>'.hsc($plugin['sourcerepo']).'</sourcerepo>';
         $feed .= '<bugtracker>'.hsc($plugin['bugtracker']).'</bugtracker>';
         $feed .= '<donationurl>'.hsc($plugin['donationurl']).'</donationurl>';
 
